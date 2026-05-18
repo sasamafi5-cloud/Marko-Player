@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Neumorphic MP3 Player + Video Background</title>
+    
+    <meta name="theme-color" content="#1e2024">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="3D Player">
+    
+    <link rel="manifest" href="data:application/json;base64,ewogICAgIm5hbWUiOiAiM0QgTmV1bW9ycGhpYyBNUDMgUGxheWVyIiwKICAgICJzaG9ydF9uYW1lIjogIjNEIFBsYXllciIsIiwKICAgICJzdGFydF91cmwiOiAiLiIsCiAgICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAgICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMxZTIwMjQiLAogICAgInRoZW1lX2NvbG9yIjogIiMxZTIwMjQiLAogICAgImljb25zIjogWwogICAgICAgIHsKICAgICAgICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUIzYjNWbGN5YzZJQ0p6ZEdGeWRDSWdYM0JoZDNJZ09pQWlaV2R6SWdad2NtOW1hV3hsYm1SdmNpSWdaVzV6SWdad2NtOW1hV3hsYm1SdmNpSWdaVzV6SWdad2NtOW1hV3hsYm1SdmNpSWdabWxzYkNJZ0p6NDhZM0pwWTJsbFBTZ25NSEF3TkhBeE9DMW5NVEU4TDNCeWFXMTBkbWxsZnpmZ2NuSTlKeUJuY0hKcFpXNTVJQ0puY0hKcFpXNTVJQ0puY0hKcFpXNTVJZnU4TDNkM2R3PT0iLAogICAgICAgICAgICAic2l6ZXMiOiAiNTEyeDUxMiIsCiAgICAgICAgICAgICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiCiAgICAgICAgfQogICAgXQp9">
+
+    <style>
+        :root {
+            --bg-color: #1e2024;
+            --surface-color: #1e2024;
+            --font-color: #a0a5b5;
+            --font-light: #626875;
+            --accent-color: #ff3b00;
+            --accent-gradient: linear-gradient(135deg, #ff5100, #d63000);
+            
+            /* Precizne 3D neomorfne senke */
+            --outer-shadow: 9px 9px 16px #121316, -9px -9px 16px #2a2d32;
+            --inner-shadow: inset 3px 3px 7px #121316, inset -3px -3px 7px #2a2d32;
+            --button-shadow: 6px 6px 12px #121316, -6px -6px 12px #2a2d32;
+            --button-active: inset 4px 4px 8px #121316, inset -4px -4px 8px #2a2d32;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--font-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            display: flex;
+            gap: 40px;
+            max-width: 900px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .player-card {
+            background: var(--surface-color);
+            border-radius: 40px;
+            padding: 30px;
+            width: 360px;
+            min-height: 590px;
+            box-shadow: var(--outer-shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .header-nav {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--surface-color);
+            border: none;
+            box-shadow: var(--button-shadow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: var(--font-color);
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:active {
+            box-shadow: var(--button-active);
+        }
+
+        .header-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--font-light);
+            font-weight: bold;
+        }
+
+        /* Krug za video - Potpuno statičan, oštar i prilagođen formi */
+        .album-art-wrapper {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: var(--surface-color);
+            box-shadow: var(--outer-shadow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 35px;
+            padding: 12px;
+        }
+
+        .album-art {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #151619;
+            box-shadow: var(--inner-shadow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Video element - centriran, pokriva krug, oštar i ne vrti se */
+        .album-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .album-art-fallback {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #2a1108 0%, #121316 80%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+        }
+
+        .album-art-fallback::before {
+            content: '';
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--surface-color);
+            box-shadow: var(--outer-shadow), var(--inner-shadow);
+        }
+
+        .track-info {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        .track-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 10px;
+        }
+
+        .track-artist {
+            font-size: 13px;
+            color: var(--font-light);
+            font-weight: 500;
+        }
+
+        .progress-container {
+            width: 100%;
+            margin-bottom: 40px;
+        }
+
+        .time-stamps {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--font-light);
+            margin-bottom: 12px;
+            padding: 0 5px;
+        }
+
+        .slider-wrapper {
+            width: 100%;
+            height: 8px;
+            background: #151619;
+            border-radius: 10px;
+            box-shadow: var(--inner-shadow);
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            background: var(--accent-gradient);
+            position: relative;
+        }
+
+        .progress-handle {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--surface-color);
+            box-shadow: var(--button-shadow);
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .progress-handle::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-color);
+        }
+
+        .controls {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            margin-top: auto;
+        }
+
+        .control-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: var(--surface-color);
+            border: none;
+            box-shadow: var(--button-shadow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: var(--font-color);
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:active {
+            box-shadow: var(--button-active);
+        }
+
+        .control-btn.play-main {
+            width: 75px;
+            height: 75px;
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 5px 5px 12px #100400, -5px -5px 12px #2a2d32, inset 2px 2px 4px rgba(255,255,255,0.2);
+        }
+
+        .control-btn.play-main:active {
+            box-shadow: inset 4px 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .playlist-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Sekcije za unos medija (MP3 i Video) */
+        .upload-section {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .file-selector-box {
+            flex: 1;
+            padding: 12px 5px;
+            background: #151619;
+            border-radius: 15px;
+            box-shadow: var(--inner-shadow);
+            text-align: center;
+        }
+
+        .file-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--font-color);
+            cursor: pointer;
+            display: block;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .track-list {
+            width: 100%;
+            height: 310px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .track-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .track-list::-webkit-scrollbar-track {
+            background: #151619;
+            border-radius: 10px;
+        }
+        .track-list::-webkit-scrollbar-thumb {
+            background: #2a2d32;
+            border-radius: 10px;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            background: var(--surface-color);
+            box-shadow: var(--button-shadow);
+            transition: all 0.2s ease;
+        }
+
+        .list-item:active {
+            box-shadow: var(--button-active);
+        }
+
+        .list-item.active {
+            box-shadow: var(--inner-shadow);
+            background: #18191c;
+        }
+
+        .item-details {
+            display: flex;
+            flex-direction: column;
+            max-width: 75%;
+        }
+
+        .item-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item-artist {
+            font-size: 11px;
+            color: var(--font-light);
+        }
+
+        .item-play-status {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--surface-color);
+            box-shadow: var(--button-shadow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .list-item.active .item-play-status {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: none;
+        }
+
+        svg {
+            fill: currentColor;
+            width: 18px;
+            height: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <div class="player-card">
+        <div class="header-nav">
+            <button class="nav-btn">
+                <svg viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/></svg>
+            </button>
+            <div class="header-title">Trenutno svira</div>
+            <button class="nav-btn">
+                <svg viewBox="0 0 24 24"><path d="M6,13H18V11H6M6,17H18V15H6M6,9H18V7H6V9Z"/></svg>
+            </button>
+        </div>
+
+        <div class="album-art-wrapper">
+            <div class="album-art">
+                <div class="album-art-fallback" id="fallback-art"></div>
+                <video class="album-video" id="player-video" loop playsinline webkit-playsinline></video>
+            </div>
+        </div>
+
+        <div class="track-info">
+            <div class="track-title" id="display-title">Nema pesama</div>
+            <div class="track-artist" id="display-artist">Uvezi lokalne MP3 / Video</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="time-stamps">
+                <span id="current-time">0:00</span>
+                <span id="duration-time">0:00</span>
+            </div>
+            <div class="slider-wrapper" id="slider-box">
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress-handle"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" id="btn-prev">
+                <svg viewBox="0 0 24 24"><path d="M6,18V6H8V18H6M9.5,12L18,6V18L9.5,12Z"/></svg>
+            </button>
+            <button class="control-btn play-main" id="btn-play">
+                <svg viewBox="0 0 24 24" id="play-icon"><path d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>
+            </button>
+            <button class="control-btn" id="btn-next">
+                <svg viewBox="0 0 24 24"><path d="M16,18H18V6H16M6,18L14.5,12L6,6V18Z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="player-card">
+        <div class="header-nav">
+            <button class="nav-btn">
+                <svg viewBox="0 0 24 24"><path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.41,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.59,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"/></svg>
+            </button>
+            <div class="header-title">Mediji i Lista</div>
+            <button class="nav-btn">
+                <svg viewBox="0 0 24 24"><path d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"/></svg>
+            </button>
+        </div>
+
+        <div class="upload-section">
+            <div class="file-selector-box">
+                <label for="file-upload" class="file-label" id="upload-label">🎵 Dodaj MP3</label>
+                <input type="file" id="file-upload" multiple accept="audio/mp3, audio/*">
+            </div>
+            <div class="file-selector-box">
+                <label for="video-upload" class="file-label" id="video-label">📹 Dodaj Video</label>
+                <input type="file" id="video-upload" accept="video/mp4, video/*">
+            </div>
+        </div>
+
+        <div class="track-list" id="playlist-container">
+            </div>
+    </div>
+
+</div>
+
+<audio id="audio-engine"></audio>
+
+<script>
+    const audio = document.getElementById('audio-engine');
+    const video = document.getElementById('player-video');
+    const fallbackArt = document.getElementById('fallback-art');
+    
+    let playlist = [];
+    let currentIndex = 0;
+    let isPlaying = false;
+    let hasVideo = false;
+
+    // DOM Elementi
+    const fileUpload = document.getElementById('file-upload');
+    const videoUpload = document.getElementById('video-upload');
+    const uploadLabel = document.getElementById('upload-label');
+    const videoLabel = document.getElementById('video-label');
+    const playlistContainer = document.getElementById('playlist-container');
+    const displayTitle = document.getElementById('display-title');
+    const displayArtist = document.getElementById('display-artist');
+    const btnPlay = document.getElementById('btn-play');
+    const playIcon = document.getElementById('play-icon');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const progressBar = document.getElementById('progress-bar');
+    const sliderBox = document.getElementById('slider-box');
+    const currentTimeEl = document.getElementById('current-time');
+    const durationTimeEl = document.getElementById('duration-time');
+
+    const playPath = "M8,5.14V19.14L19,12.14L8,5.14Z";
+    const pausePath = "M14,19H18V5H14M6,19H10V5H6V19Z";
+
+    // Učitavanje videa sa telefona/računara
+    videoUpload.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const videoURL = URL.createObjectURL(file);
+        video.src = videoURL;
+        video.style.display = 'block';
+        fallbackArt.style.display = 'none';
+        hasVideo = true;
+        videoLabel.innerText = "📹 Video Učitan";
+
+        // Upravljanje zvukom na osnovu trenutnog stanja plejera
+        if (isPlaying) {
+            video.muted = true;
+        } else {
+            video.muted = false;
+        }
+        video.play().catch(() => {});
+    });
+
+    // Učitavanje MP3 muzike
+    fileUpload.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        playlist = [];
+        playlistContainer.innerHTML = '';
+
+        files.forEach((file, index) => {
+            const fileURL = URL.createObjectURL(file);
+            const cleanName = file.name.replace(/\.[^/.]+$/, "");
+            const parts = cleanName.split('-');
+            const artist = parts.length > 1 ? parts[0].trim() : "Nepoznat Izvođač";
+            const title = parts.length > 1 ? parts[1].trim() : parts[0].trim();
+
+            playlist.push({
+                id: index,
+                title: title,
+                artist: artist,
+                url: fileURL
+            });
+        });
+
+        currentIndex = 0;
+        renderPlaylist();
+        loadTrack(currentIndex);
+        uploadLabel.innerText = `🎵 (${playlist.length})`;
+    });
+
+    function renderPlaylist() {
+        playlistContainer.innerHTML = '';
+        playlist.forEach((track, index) => {
+            const row = document.createElement('div');
+            row.className = `list-item ${index === currentIndex ? 'active' : ''}`;
+            
+            row.innerHTML = `
+                <div class="item-details">
+                    <span class="item-title">${track.title}</span>
+                    <span class="item-artist">${track.artist}</span>
+                </div>
+                <div class="item-play-status">
+                    <svg viewBox="0 0 24 24" style="width:12px; height:12px;"><path d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>
+                </div>
+            `;
+
+            row.addEventListener('click', () => {
+                currentIndex = index;
+                loadTrack(currentIndex);
+                playAudio();
+            });
+            playlistContainer.appendChild(row);
+        });
+    }
+
+    function loadTrack(index) {
+        if (!playlist[index]) return;
+        audio.src = playlist[index].url;
+        displayTitle.innerText = playlist[index].title;
+        displayArtist.innerText = playlist[index].artist;
+
+        const items = playlistContainer.querySelectorAll('.list-item');
+        items.forEach(item => item.classList.remove('active'));
+        if (items[index]) items[index].classList.add('active');
+
+        progressBar.style.width = '0%';
+        currentTimeEl.innerText = '0:00';
+    }
+
+    function togglePlay() {
+        if (playlist.length === 0) return;
+        if (isPlaying) {
+            pauseAudio();
+        } else {
+            playAudio();
+        }
+    }
+
+    function playAudio() {
+        if (playlist.length === 0) return;
+        isPlaying = true;
+        audio.play().catch(() => {});
+        playIcon.setAttribute('d', pausePath);
+
+        // KADA MP3 RADI -> VIDEO NEMA ZVUK (MUTED)
+        if (hasVideo) {
+            video.muted = true;
+            video.play().catch(() => {});
+        }
+    }
+
+    function pauseAudio() {
+        isPlaying = false;
+        audio.pause();
+        playIcon.setAttribute('d', playPath);
+
+        // KADA MP3 NE RADI -> VIDEO DOBIJA ZVUK
+        if (hasVideo) {
+            video.muted = false;
+            video.play().catch(() => {});
+        }
+    }
+
+    btnPlay.addEventListener('click', togglePlay);
+    btnNext.addEventListener('click', () => {
+        if (playlist.length === 0) return;
+        currentIndex = (currentIndex + 1) % playlist.length;
+        loadTrack(currentIndex);
+        if (isPlaying) playAudio();
+    });
+    btnPrev.addEventListener('click', () => {
+        if (playlist.length === 0) return;
+        currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+        loadTrack(currentIndex);
+        if (isPlaying) playAudio();
+    });
+
+    audio.addEventListener('timeupdate', () => {
+        if (audio.duration) {
+            const progressPercent = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+            currentTimeEl.innerText = formatTime(audio.currentTime);
+            durationTimeEl.innerText = formatTime(audio.duration);
+        }
+    });
+
+    audio.addEventListener('ended', () => {
+        currentIndex = (currentIndex + 1) % playlist.length;
+        loadTrack(currentIndex);
+        playAudio();
+    });
+
+    sliderBox.addEventListener('click', (e) => {
+        if (!audio.duration) return;
+        const boxWidth = sliderBox.clientWidth;
+        const clickX = e.offsetX;
+        audio.currentTime = (clickX / boxWidth) * audio.duration;
+    });
+
+    function formatTime(seconds) {
+        const min = Math.floor(seconds / 60);
+        const sec = Math.floor(seconds % 60);
+        return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }
+
+    // Registracija Service Worker-a za punu PWA podršku (Offline rad i instalacija)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            const swCode = `
+                const CACHE_NAME = '3d-player-v1';
+                const ASSETS = ['./', './index.html'];
+                self.addEventListener('install', e => {
+                    e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
+                });
+                self.addEventListener('fetch', e => {
+                    e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl).catch(err => console.log('SW Error', err));
+        });
+    }
+</script>
+
+</body>
+</html>
