@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Neumorphic MP3 Player + Video Background</title>
+    <title>3D Neumorphic MP3 Player</title>
     
     <meta name="theme-color" content="#1e2024">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="3D Player">
     
-    <link rel="manifest" href="data:application/json;base64,ewogICAgIm5hbWUiOiAiM0QgTmV1bW9ycGhpYyBNUDMgUGxheWVyIiwKICAgICJzaG9ydF9uYW1lIjogIjNEIFBsYXllciIsIiwKICAgICJzdGFydF91cmwiOiAiLiIsCiAgICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAgICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMxZTIwMjQiLAogICAgInRoZW1lX2NvbG9yIjogIiMxZTIwMjQiLAogICAgImljb25zIjogWwogICAgICAgIHsKICAgICAgICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUIzYjNWbGN5YzZJQ0p6ZEdGeWRDSWdYM0JoZDNJZ09pQWlaV2R6SWdad2NtOW1hV3hsYm1SdmNpSWdaVzV6SWdad2NtOW1hV3hsYm1SdmNpSWdaVzV6SWdad2NtOW1hV3hsYm1SdmNpSWdabWxzYkNJZ0p6NDhZM0pwWTJsbFBTZ25NSEF3TkhBeE9DMW5NVEU4TDNCeWFXMTBkbWxsZnpmZ2NuSTlKeUJuY0hKcFpXNTVJQ0puY0hKcFpXNTVJQ0puY0hKcFpXNTVJZnU4TDNkM2R3PT0iLAogICAgICAgICAgICAic2l6ZXMiOiAiNTEyeDUxMiIsCiAgICAgICAgICAgICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiCiAgICAgICAgfQogICAgXQp9">
+    <link rel="manifest" href="manifest.json">
 
     <style>
         :root {
@@ -21,7 +21,7 @@
             --accent-color: #ff3b00;
             --accent-gradient: linear-gradient(135deg, #ff5100, #d63000);
             
-            /* Precizne 3D neomorfne senke */
+            /* Precizne 3D neomorfne senke sa slike */
             --outer-shadow: 9px 9px 16px #121316, -9px -9px 16px #2a2d32;
             --inner-shadow: inset 3px 3px 7px #121316, inset -3px -3px 7px #2a2d32;
             --button-shadow: 6px 6px 12px #121316, -6px -6px 12px #2a2d32;
@@ -103,7 +103,7 @@
             font-weight: bold;
         }
 
-        /* Krug za video - Potpuno statičan, oštar i prilagođen formi */
+        /* 3D Krug za statični video - Bez rotacije, oštar */
         .album-art-wrapper {
             width: 220px;
             height: 220px;
@@ -130,7 +130,6 @@
             position: relative;
         }
 
-        /* Video element - centriran, pokriva krug, oštar i ne vrti se */
         .album-video {
             width: 100%;
             height: 100%;
@@ -281,13 +280,6 @@
             box-shadow: inset 4px 4px 10px rgba(0,0,0,0.5);
         }
 
-        .playlist-wrapper {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Sekcije za unos medija (MP3 i Video) */
         .upload-section {
             display: flex;
             gap: 10px;
@@ -310,10 +302,6 @@
             color: var(--font-color);
             cursor: pointer;
             display: block;
-        }
-
-        input[type="file"] {
-            display: none;
         }
 
         .track-list {
@@ -346,10 +334,6 @@
             background: var(--surface-color);
             box-shadow: var(--button-shadow);
             transition: all 0.2s ease;
-        }
-
-        .list-item:active {
-            box-shadow: var(--button-active);
         }
 
         .list-item.active {
@@ -476,8 +460,7 @@
             </div>
         </div>
 
-        <div class="track-list" id="playlist-container">
-            </div>
+        <div class="track-list" id="playlist-container"></div>
     </div>
 
 </div>
@@ -494,7 +477,6 @@
     let isPlaying = false;
     let hasVideo = false;
 
-    // DOM Elementi
     const fileUpload = document.getElementById('file-upload');
     const videoUpload = document.getElementById('video-upload');
     const uploadLabel = document.getElementById('upload-label');
@@ -514,50 +496,34 @@
     const playPath = "M8,5.14V19.14L19,12.14L8,5.14Z";
     const pausePath = "M14,19H18V5H14M6,19H10V5H6V19Z";
 
-    // Učitavanje videa sa telefona/računara
+    // Video Audio Logika
     videoUpload.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
-        const videoURL = URL.createObjectURL(file);
-        video.src = videoURL;
+        video.src = URL.createObjectURL(file);
         video.style.display = 'block';
         fallbackArt.style.display = 'none';
         hasVideo = true;
         videoLabel.innerText = "📹 Video Učitan";
-
-        // Upravljanje zvukom na osnovu trenutnog stanja plejera
-        if (isPlaying) {
-            video.muted = true;
-        } else {
-            video.muted = false;
-        }
+        video.muted = isPlaying;
         video.play().catch(() => {});
     });
 
-    // Učitavanje MP3 muzike
+    // MP3 Logika
     fileUpload.addEventListener('change', (e) => {
         const files = Array.from(e.target.files);
         if (files.length === 0) return;
-
         playlist = [];
-        playlistContainer.innerHTML = '';
-
         files.forEach((file, index) => {
-            const fileURL = URL.createObjectURL(file);
             const cleanName = file.name.replace(/\.[^/.]+$/, "");
             const parts = cleanName.split('-');
-            const artist = parts.length > 1 ? parts[0].trim() : "Nepoznat Izvođač";
-            const title = parts.length > 1 ? parts[1].trim() : parts[0].trim();
-
             playlist.push({
                 id: index,
-                title: title,
-                artist: artist,
-                url: fileURL
+                title: parts.length > 1 ? parts[1].trim() : parts[0].trim(),
+                artist: parts.length > 1 ? parts[0].trim() : "Nepoznat Izvođač",
+                url: URL.createObjectURL(file)
             });
         });
-
         currentIndex = 0;
         renderPlaylist();
         loadTrack(currentIndex);
@@ -569,22 +535,11 @@
         playlist.forEach((track, index) => {
             const row = document.createElement('div');
             row.className = `list-item ${index === currentIndex ? 'active' : ''}`;
-            
             row.innerHTML = `
-                <div class="item-details">
-                    <span class="item-title">${track.title}</span>
-                    <span class="item-artist">${track.artist}</span>
-                </div>
-                <div class="item-play-status">
-                    <svg viewBox="0 0 24 24" style="width:12px; height:12px;"><path d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>
-                </div>
+                <div class="item-details"><span class="item-title">${track.title}</span><span class="item-artist">${track.artist}</span></div>
+                <div class="item-play-status"><svg viewBox="0 0 24 24" style="width:12px; height:12px;"><path d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg></div>
             `;
-
-            row.addEventListener('click', () => {
-                currentIndex = index;
-                loadTrack(currentIndex);
-                playAudio();
-            });
+            row.addEventListener('click', () => { currentIndex = index; loadTrack(currentIndex); playAudio(); });
             playlistContainer.appendChild(row);
         });
     }
@@ -594,22 +549,10 @@
         audio.src = playlist[index].url;
         displayTitle.innerText = playlist[index].title;
         displayArtist.innerText = playlist[index].artist;
-
         const items = playlistContainer.querySelectorAll('.list-item');
         items.forEach(item => item.classList.remove('active'));
         if (items[index]) items[index].classList.add('active');
-
         progressBar.style.width = '0%';
-        currentTimeEl.innerText = '0:00';
-    }
-
-    function togglePlay() {
-        if (playlist.length === 0) return;
-        if (isPlaying) {
-            pauseAudio();
-        } else {
-            playAudio();
-        }
     }
 
     function playAudio() {
@@ -617,87 +560,46 @@
         isPlaying = true;
         audio.play().catch(() => {});
         playIcon.setAttribute('d', pausePath);
-
-        // KADA MP3 RADI -> VIDEO NEMA ZVUK (MUTED)
-        if (hasVideo) {
-            video.muted = true;
-            video.play().catch(() => {});
-        }
+        if (hasVideo) { video.muted = true; video.play().catch(() => {}); }
     }
 
     function pauseAudio() {
         isPlaying = false;
         audio.pause();
         playIcon.setAttribute('d', playPath);
-
-        // KADA MP3 NE RADI -> VIDEO DOBIJA ZVUK
-        if (hasVideo) {
-            video.muted = false;
-            video.play().catch(() => {});
-        }
+        if (hasVideo) { video.muted = false; video.play().catch(() => {}); }
     }
 
-    btnPlay.addEventListener('click', togglePlay);
-    btnNext.addEventListener('click', () => {
-        if (playlist.length === 0) return;
-        currentIndex = (currentIndex + 1) % playlist.length;
-        loadTrack(currentIndex);
-        if (isPlaying) playAudio();
-    });
-    btnPrev.addEventListener('click', () => {
-        if (playlist.length === 0) return;
-        currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-        loadTrack(currentIndex);
-        if (isPlaying) playAudio();
-    });
+    btnPlay.addEventListener('click', () => isPlaying ? pauseAudio() : playAudio());
+    btnNext.addEventListener('click', () => { currentIndex = (currentIndex + 1) % playlist.length; loadTrack(currentIndex); if (isPlaying) playAudio(); });
+    btnPrev.addEventListener('click', () => { currentIndex = (currentIndex - 1 + playlist.length) % playlist.length; loadTrack(currentIndex); if (isPlaying) playAudio(); });
+    audio.addEventListener('ended', () => { currentIndex = (currentIndex + 1) % playlist.length; loadTrack(currentIndex); playAudio(); });
 
     audio.addEventListener('timeupdate', () => {
         if (audio.duration) {
-            const progressPercent = (audio.currentTime / audio.duration) * 100;
-            progressBar.style.width = `${progressPercent}%`;
+            progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
             currentTimeEl.innerText = formatTime(audio.currentTime);
             durationTimeEl.innerText = formatTime(audio.duration);
         }
     });
 
-    audio.addEventListener('ended', () => {
-        currentIndex = (currentIndex + 1) % playlist.length;
-        loadTrack(currentIndex);
-        playAudio();
-    });
-
     sliderBox.addEventListener('click', (e) => {
-        if (!audio.duration) return;
-        const boxWidth = sliderBox.clientWidth;
-        const clickX = e.offsetX;
-        audio.currentTime = (clickX / boxWidth) * audio.duration;
+        if (audio.duration) audio.currentTime = (e.offsetX / sliderBox.clientWidth) * audio.duration;
     });
 
-    function formatTime(seconds) {
-        const min = Math.floor(seconds / 60);
-        const sec = Math.floor(seconds % 60);
-        return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    function formatTime(s) {
+        const m = Math.floor(s / 60); const sec = Math.floor(s % 60);
+        return `${m}:${sec < 10 ? '0' : ''}${sec}`;
     }
 
-    // Registracija Service Worker-a za punu PWA podršku (Offline rad i instalacija)
+    // Registracija eksternog Service Worker fajla
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            const swCode = `
-                const CACHE_NAME = '3d-player-v1';
-                const ASSETS = ['./', './index.html'];
-                self.addEventListener('install', e => {
-                    e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
-                });
-                self.addEventListener('fetch', e => {
-                    e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-                });
-            `;
-            const blob = new Blob([swCode], { type: 'application/javascript' });
-            const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl).catch(err => console.log('SW Error', err));
+            navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('PWA Service Worker uspešno registrovan!'))
+            .catch(err => console.log('Greška pri registraciji SW:', err));
         });
     }
 </script>
-
 </body>
 </html>
